@@ -7,7 +7,7 @@ import plotly.express as px
 title = st.beta_container()
 datacon = st.beta_container()
 
-select = st.sidebar.selectbox("What would you like to do", ("Weapon Stats","Agent Stats"))
+select = st.sidebar.selectbox("What would you like to do", ("Weapon Stats","Agent Stats","Clutch Stats"))
 
 @st.cache
 def load_data(data):
@@ -22,13 +22,26 @@ with title:
         st.write("")
         st.image("https://www.runitback.gg/static/media/logo.dcfad9c9.png",caption="source of stats")
 
+if select == "Clutch Stats":
+    data = load_data("Clutches")
+    fig = go.Figure(data=go.Table(
+    columnwidth=[2,1,1,1,1],
+    header=dict(values=list(data[["Ign","Team","Clutches","Failures","Percentage"]].columns),
+    fill_color="#383838"),
+    cells=dict(values=[data.Ign, data.Team, data.Clutches, data.Failures, data.Percentage],
+    fill_color="#383838")))
+    fig.update_layout(margin=dict(l=0,r=0,b=0,t=0))
+    st.write(fig)
+
+
 
 
 if select == "Weapon Stats":
     number = st.sidebar.select_slider(
     'Number of Agents to Graph:',
     options=[1,2])
-    if number == 1:
+    weapon_type = st.sidebar.selectbox("What Gun Type",("All", "Pistols", "Rifles", "SMGs","Snipers","Heavy"))
+    if number == 1 and weapon_type == "All":
         breakdown = st.sidebar.selectbox("Breakdown by agent.",("All","Omen","Sova","Jett","Raze","Cypher","Sage","Killjoy","Breach","Reyna","Phoenix","Viper","Skye","Brimstone","Yoru"))
         if breakdown == "All":
             with datacon:
@@ -44,7 +57,7 @@ if select == "Weapon Stats":
                     fig.update_layout(margin=dict(l=0,r=0,b=0,t=0))
                     st.write(fig)
             data = pd.read_csv("csv/All.csv")
-            fig = go.Figure(data=go.Bar(x=data["Weapon"],showlegend=False,y=data["Percentage"],text=data["Percentage"],textposition="auto",marker_color='#D22E46'))
+            fig = go.Figure(data=go.Bar(x=data["Weapon"],showlegend=True,name="All Agents",y=data["Percentage"],text=data["Percentage"],textposition="auto",marker_color='#D22E46'))
             fig.update_layout(xaxis_tickangle=-45,paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',font=dict(color="#FFFFFF"))
             fig.update_traces(marker_line_width=0)
@@ -52,7 +65,7 @@ if select == "Weapon Stats":
         else:
             data = load_data(breakdown)
             fig = go.Figure(data=
-                go.Bar(x=data["Weapon"],showlegend=False,y=data["Percentage"],text=data["Percentage"],textposition="auto",marker_color='#D22E46'))
+                go.Bar(x=data["Weapon"],showlegend=True,name=breakdown,y=data["Percentage"],text=data["Percentage"],textposition="auto",marker_color='#D22E46'))
             fig.update_layout(xaxis_tickangle=-45,paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',font=dict(color="#FFFFFF"))
             fig.update_traces(marker_line_width=0)
@@ -70,7 +83,17 @@ if select == "Weapon Stats":
         plot_bgcolor='rgba(0,0,0,0)',font=dict(color="#FFFFFF"),barmode="group")
         fig.update_traces(marker_line_width=0)
         st.write(fig)
-        
+    elif weapon_type != "All":
+            data = load_data(weapon_type)
+            
+            fig = go.Figure(data=
+            go.Bar(x=data["Weapon"],showlegend=True,name="Masters",y=data["Percentage"],text=data["Percentage"],textposition="auto",marker_color='#D22E46')
+            )
+            fig.update_layout(title=weapon_type,xaxis_tickangle=-45,paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",font=dict(color="#FFFFFF",size=20))
+            fig.update_traces(marker_line_width=0)
+            st.write(fig)
+
 
 elif select == "Agent Stats":
     maps = st.sidebar.selectbox("Map Breakdown.",("All Agents","Ascent","Bind","Haven","Split","Icebox"))
